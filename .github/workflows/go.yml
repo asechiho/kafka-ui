@@ -1,0 +1,32 @@
+name: Linter
+
+on: pull_request
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+
+    container:
+      image: golang:1.15.8-buster
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Install linter
+        run: curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b ~/bin v1.32.2
+
+      - name: Install go-enum
+        run: go get github.com/abice/go-enum
+
+      - name: Generate enum
+        run: go generate ./...
+
+      - name: Lint code
+        run: export WORK=$(pwd) && ~/bin/golangci-lint run -e ST1006,SA1029,S1034 --path-prefix $WORK
+
+      - name: Build image
+        env:
+          DOCKER_HUB_TOKEN: ${{secrets.DOCKER_HUB_SECRET}}
+          DOCKER_HUB_NAME: ${{secrets.DOCKER_HUB_USERNAME}}
+        run: docker login --username $DOCKER_HUB_NAME --password $DOCKER_HUB_TOKEN && docker build -t greenmailweb/kafka-ui:2.0 && docker push greenmailweb/kafka-ui:2.0
