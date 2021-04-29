@@ -31,7 +31,7 @@ jobs:
         run: |
           apt-get update
           apt-get install -y apt-transport-https ca-certificates curl gnupg lsb-release
-          apt-get install docker-ce docker-ce-cli containerd.i
+          apt-get install docker-ce docker-ce-cli
 
       - name: Build image
         run: |
