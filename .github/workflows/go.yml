@@ -4,21 +4,23 @@ on:
   push:
     tags:
       - v*
-  pull_request:
+  pull_request: 
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-#      - name: Extract tag name
-#        id: tag
-#        uses: actions/github-script@0.2.0
-#        with:
-#          script: |
+      - name: Extract tag name
+        id: tag
+        uses: actions/github-script@0.2.0
+        with:
+          script: |
+            return '2.1'
 #            return context.payload.ref.replace(/\/refs\/tags\//, '');
-      - name: echo
-        run: echo "${{ secrets.DOCKER_HUB_USERNAME }}" && echo "${{ secrets.DOCKER_HUB_TOKEN }}"
+
+      - name: Echo Tag
+        run: echo ${{ steps.tag.outputs.result }}
 
       - name: Checkout
         uses: actions/checkout@v2
