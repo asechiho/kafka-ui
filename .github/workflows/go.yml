@@ -17,6 +17,8 @@ jobs:
 #        with:
 #          script: |
 #            return context.payload.ref.replace(/\/refs\/tags\//, '');
+      - name: echo
+        run: echo "${{ secrets.DOCKER_HUB_USERNAME }}" && echo "${{ secrets.DOCKER_HUB_SECRET }}"
 
       - name: Checkout
         uses: actions/checkout@v2
