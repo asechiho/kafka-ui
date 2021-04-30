@@ -16,7 +16,7 @@ jobs:
         uses: battila7/get-version-action@v2
 
       - name: Echo Tag
-        run: echo ${{ steps.get_version.outputs.version }}
+        run: echo ${{ steps.get_version.outputs.prerelease }}
 #
 #      - name: Checkout
 #        uses: actions/checkout@v2
