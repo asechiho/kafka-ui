@@ -14,10 +14,9 @@ jobs:
       - name: Get latest release version number
         id: get_version
         uses: battila7/get-version-action@v2
-        run: echo ${{ steps.get_version.outputs.version }}
 
       - name: Echo Tag
-        run: echo ${{ steps.get_version.outputs.prerelease }}
+        run: echo ${{ steps.get_version.outputs.version }}
 #
 #      - name: Checkout
 #        uses: actions/checkout@v2
