@@ -4,7 +4,7 @@ on:
   push:
     tags:
       - v*
-  pull_request: 
+  pull_request:
 
 jobs:
   build:
@@ -13,7 +13,7 @@ jobs:
     steps:
       - name: Extract tag name
         id: tag
-        uses: actions/github-script@0.2.0
+#        uses: actions/github-script@0.2.0
         with:
           script: |
             return '2.1'
