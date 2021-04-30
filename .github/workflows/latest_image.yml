@@ -1,6 +1,6 @@
-name: Build And Push Image
+name: Build And Push Latest Image
 
-on: workflow_run
+on: check_run
 
 jobs:
   image:
