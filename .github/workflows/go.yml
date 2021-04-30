@@ -8,12 +8,14 @@ on:
 
 jobs:
   build:
+    env:
+      REPO_NAME: ${{ github.event.repository.name }}
     runs-on: ubuntu-latest
 
     steps:
       - name: Get rpositoryName
         id: name
-        run: echo ${{ github.repository.name }}
+        run: echo $REPO_NAME
 #       - name: Get latest release version number
 #         id: get_version
 #         uses: battila7/get-version-action@v2
