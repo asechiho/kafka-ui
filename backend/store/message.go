@@ -15,14 +15,14 @@ import (
 const messageFilterFields = "offset;partition;timestamp;at;size;"
 
 type Message struct {
-	Topic     string    `rethinkdb:"topic"`
-	Headers   []byte    `rethinkdb:"headers"`
-	Offset    int       `rethinkdb:"offset"`
-	Partition int       `rethinkdb:"partition"`
-	Timestamp int64     `rethinkdb:"timestamp"`
-	At        time.Time `rethinkdb:"at"`
-	Size      int       `rethinkdb:"size"`
-	Message   []byte    `rethinkdb:"message"`
+	Topic     string    `rethinkdb:"topic"     bson:"topic"`
+	Headers   []byte    `rethinkdb:"headers"   bson:"headers"`
+	Offset    int       `rethinkdb:"offset"    bson:"offset"`
+	Partition int       `rethinkdb:"partition" bson:"partition"`
+	Timestamp int64     `rethinkdb:"timestamp" bson:"timestamp"`
+	At        time.Time `rethinkdb:"at"        bson:"at"`
+	Size      int       `rethinkdb:"size"      bson:"size"`
+	Message   []byte    `rethinkdb:"message"   bson:"message"`
 }
 
 func (message Message) Filter(filters Filters) bool {

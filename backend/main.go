@@ -38,7 +38,7 @@ func initContainers() *application.Application {
 	_, _ = di.RegisterBean("appConfigure", reflect.TypeOf((*config.Configure)(nil)))
 	_, _ = di.RegisterBean("wsService", reflect.TypeOf((*ws.WsService)(nil)))
 	_, _ = di.RegisterBean("providerService", reflect.TypeOf((*provider.Provider)(nil)))
-	_, _ = di.RegisterBean("storeService", reflect.TypeOf((*store.RethinkService)(nil)))
+	_, _ = di.RegisterBean("storeService", reflect.TypeOf((*store.MongoDBService)(nil)))
 	_ = di.InitializeContainer()
 
 	if _, err := di.GetInstance("appConfigure").(*config.Configure).LoadConfig(); err != nil {

@@ -17,6 +17,7 @@ type Config struct {
 	KafkaGroup    string `config:"kafka-group-id"`
 	DatabaseHost  string `config:"db-host"`
 	DatabasePort  string `config:"db-port"`
+	DatabaseName  string `config:"db-name"`
 }
 
 func (config *Config) Defaults() *Config {
@@ -25,7 +26,8 @@ func (config *Config) Defaults() *Config {
 	config.KafkaPort = "9092"
 	config.KafkaGroup = "kafka-ui-messages-fetch"
 	config.DatabaseHost = "127.0.0.1"
-	config.DatabasePort = "28015"
+	config.DatabasePort = "27017"
+	config.DatabaseName = "softswiss"
 	return config
 }
 
