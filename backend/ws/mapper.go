@@ -2,6 +2,7 @@ package ws
 
 import (
 	"encoding/json"
+	log "github.com/sirupsen/logrus"
 	"strconv"
 	"strings"
 	"time"
@@ -45,7 +46,15 @@ func ConvertToWsTopic(message store.Message) Topic {
 
 func ConvertToStoreFilter(request MessageRequest) (result store.Filters) {
 	if len(request.Filters) == 0 {
-		return store.Filters{}
+		return store.Filters{
+			Size: 20,
+		}
+	}
+
+	var err error
+	if result.Size, err = strconv.Atoi(request.Size); err != nil {
+		result.Size = 20
+		log.Warnf("Parse size error: %s", err.Error())
 	}
 
 	for _, filter := range request.Filters {

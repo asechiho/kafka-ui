@@ -14,7 +14,11 @@
 import FilterChip from "@/components/FilterChip.vue";
 
 export default {
-  methods: {},
+  methods: {
+    request: function () {
+      this.$store.dispatch("request");
+    }
+  },
   watch: {},
   components: { FilterChip }
 };

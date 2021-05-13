@@ -12,7 +12,8 @@ import Header from "./Header/Index.vue";
 import Messages from "./Messages.vue";
 
 export default {
-  components: { Header, Messages }
+  components: {Header, Messages},
+
 };
 </script>
 

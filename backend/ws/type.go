@@ -32,6 +32,7 @@ type Filter struct {
 type MessageRequest struct {
 	Command WsCommandType `json:"request"`
 	Filters []Filter      `json:"filters,omitempty"`
+	Size    string        `json:"size"`
 }
 
 type Message struct {

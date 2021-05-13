@@ -1,24 +1,17 @@
 <template>
   <a>
-    <Dropdown
-      @on-click="onItemSelected"
-      style="padding-top: 5px"
-      trigger="contextMenu"
-    >
-      <div class="filter-chip">
-        <div class="filter-chip-key">{{ filter.parameter }}</div>
+    <div class="filter-chip">
+      <div class="filter-chip-key">{{ filter.parameter }}</div>
 
-        <div class="filter-chip-operator">{{ filter.operator }}</div>
+      <div class="filter-chip-operator">{{ filter.operator }}</div>
 
-        <span class="filter-chip-value">
+      <span class="filter-chip-value">
           {{ filter.value }}
         </span>
-      </div>
 
-      <DropdownMenu slot="list">
-        <DropdownItem name="delete">Delete</DropdownItem>
-      </DropdownMenu>
-    </Dropdown>
+      <Icon type="ios-close-circle-outline" class="filter-chip-key-right" @click="remove"/>
+
+    </div>
   </a>
 </template>
 
@@ -32,6 +25,9 @@ export default {
       if (name === "delete") {
         this.$store.commit("REMOVE_FILTER", this.filter);
       }
+    },
+    remove: function () {
+      this.$store.commit("REMOVE_FILTER", this.filter);
     }
   }
 };
@@ -50,6 +46,23 @@ export default {
   background-color: rgb(70, 70, 70);
 }
 
+.filter-chip-key-right {
+  display: inline-block;
+  height: 24px;
+  line-height: 24px;
+  border-top-right-radius: 8px;
+  border-bottom-right-radius: 8px;
+  color: red;
+  padding-right: 5px;
+  padding-left: 5px;
+  background-color: rgb(70, 70, 70);
+}
+
+.filter-chip-key-right:hover {
+  color: #fff;
+  background-color: firebrick;
+}
+
 .filter-chip-operator {
   display: inline-block;
   padding: 0 5px;
@@ -60,7 +73,6 @@ export default {
 }
 
 .filter-chip-value {
-  padding-right: 5px;
   color: #fff;
 }
 

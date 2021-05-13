@@ -138,7 +138,7 @@ func (mongoDB *MongoDBService) Messages(socketContext context.Context, filterCha
 				return
 
 			case filter = <-filterChan:
-				mongoDB.getLastMessages(id, msgChan, filter, 20)
+				mongoDB.getLastMessages(id, msgChan, filter, filter.Size)
 
 			case msg := <-changesChan:
 				if msg.Filter(filter) {
@@ -223,15 +223,14 @@ func (mongoDB *MongoDBService) getLastMessages(id uuid.UUID, msgChan chan Messag
 		cursor      *mongo.Cursor
 		err         error
 	)
-	if filters.Topic != "" {
+
+	if filters.Topic != "" && filters.Topic != "all" {
 		topicFilter = bson.M{
 			CollectionIndex: filters.Topic,
 		}
 	}
 
-	cursor, err = mongoDB.getCollection(id).Find(mongoDB.configure.GlobalContext, topicFilter, &options.FindOptions{
-		Sort: bson.D{{"offset", 1}},
-	})
+	cursor, err = mongoDB.getCollection(id).Find(mongoDB.configure.GlobalContext, topicFilter, options.Find().SetSort(bson.D{{"offset", 1}}).SetLimit(int64(count)))
 	if err != nil {
 		log.Warnf("Get desc error: %s", err.Error())
 		return
@@ -263,17 +262,18 @@ func (mongoDB *MongoDBService) listenChanges(socketContext context.Context, id u
 			select {
 			case <-socketContext.Done():
 				log.Info("Close MongoDB connection to listen changes. Socket context close")
-				_ = stream.Close(socketContext)
 				return
 
 			case <-mongoDB.configure.GlobalContext.Done():
 				log.Info("Close MongoDB connection to listen changes. Application context close")
-				_ = stream.Close(socketContext)
 				return
 
 			default:
-				if stream, err = collection.Watch(socketContext, mongo.Pipeline{}); err != nil {
-					log.Errorf("MongoDB get changes error: %s", err.Error())
+				if stream == nil {
+					if stream, err = collection.Watch(socketContext, mongo.Pipeline{}, options.ChangeStream()); err != nil {
+						log.Errorf("MongoDB get changes error: %s", err.Error())
+						continue
+					}
 				}
 
 				for stream.Next(socketContext) {

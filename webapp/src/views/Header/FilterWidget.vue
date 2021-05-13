@@ -54,7 +54,7 @@
 
         <br />
         <div style="padding-left: 425px; padding-top: 15px">
-          <Button @click="add" :disabled="field == '' || value == ''">
+          <Button @click="add" :disabled="field === '' || value === ''">
             <Icon type="ios-add-circle-outline" /> Add
           </Button>
         </div>
@@ -71,6 +71,7 @@ export default {
     },
     onTopicChange: function (value) {
       this.$store.commit("SET_TOPIC", value);
+      this.$store.dispatch("request");
     },
     add: function () {
       this.$store.commit("ADD_FILTER", {

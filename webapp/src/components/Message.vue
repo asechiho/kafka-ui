@@ -34,7 +34,7 @@
           <prism-editor
             v-model="payload"
             :highlight="highlighter"
-            readonly="true"
+            readonly=true
           ></prism-editor>
         </div>
 
@@ -42,7 +42,7 @@
           <prism-editor
             v-model="payloadFormatted"
             :highlight="highlighter"
-            readonly="true"
+            readonly
           ></prism-editor>
         </div>
       </div>

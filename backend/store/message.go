@@ -112,6 +112,7 @@ type Comparator interface {
 type Filters struct {
 	Topic   string
 	Filters []Filter
+	Size    int
 }
 
 type Filter struct {
