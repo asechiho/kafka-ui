@@ -31,7 +31,7 @@ func (wsService *WsService) Serve() {
 	wsService.connections = make(map[uuid.UUID]net.Conn)
 
 	http.HandleFunc("/", wsService.Socket)
-	go log.Fatal(http.ListenAndServe(":9003", nil))
+	go log.Fatal(http.ListenAndServe(":9002", nil))
 }
 
 func (wsService *WsService) Stop() {

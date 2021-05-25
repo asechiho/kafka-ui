@@ -11,9 +11,9 @@ type WsCommandType uint
 //eq
 //ne
 //gt
-//ge
+//gte
 //lt
-//le
+//lte
 //)
 type OperatorType uint
 

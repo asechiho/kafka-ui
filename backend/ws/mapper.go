@@ -2,6 +2,7 @@ package ws
 
 import (
 	"encoding/json"
+	"fmt"
 	log "github.com/sirupsen/logrus"
 	"strconv"
 	"strings"
@@ -64,9 +65,10 @@ func ConvertToStoreFilter(request MessageRequest) (result store.Filters) {
 		}
 
 		result.Filters = append(result.Filters, store.Filter{
-			FieldName:  filter.Param,
-			FieldValue: filter.Value,
-			Comparator: New(filter.Operator, getCastType(filter.Param)),
+			FieldName:     filter.Param,
+			FieldValue:    filter.Value,
+			Comparator:    New(filter.Operator, getCastType(filter.Param)),
+			MongoOperator: fmt.Sprintf("$%s", filter.Operator.String()),
 		})
 	}
 	return

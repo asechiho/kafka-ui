@@ -20,17 +20,17 @@ COPY nginx.conf /etc/nginx/nginx.conf
 
 RUN cd /tmp \
     && apt-get update \
-    && apt-get install -y gnupg wget lsb-release \
+    && apt-get install -y gnupg wget lsb-release procps \
     && export CODENAME=`lsb_release -cs` \
-    && echo "deb https://download.rethinkdb.com/repository/debian-$CODENAME $CODENAME main" | tee /etc/apt/sources.list.d/rethinkdb.list \
     && echo "deb http://repo.mongodb.org/apt/debian buster/mongodb-org/4.4 main" | tee /etc/apt/sources.list.d/mongodb-org-4.4.list \
-    && wget -qO- https://download.rethinkdb.com/repository/raw/pubkey.gpg | apt-key add - \
     && wget -qO - https://www.mongodb.org/static/pgp/server-4.4.asc | apt-key add - \
     && apt-get update \
-    && apt-get install -y rethinkdb mongodb-org bash
+    && apt-get install -y mongodb-org bash
 
 COPY entrypoint.sh /app/entrypoint.sh
-RUN mkdir -p /data/db \
+COPY start_mongo_repl.sh /app/start_mongo_repl.sh
+RUN chmod +x /app/start_mongo_repl.sh \
+    && mkdir -p /data/db \
     && echo -e 'systemLog:\n  destination: file\n  path: /mongo.log\n  logAppend: true\nstorage:\n  dbPath: /data/db\nnet:\n  bindIp: 127.0.0.1\nreplication:\n  replSetName: "rs0"' >> /mongod.conf
 
 EXPOSE 80 9002

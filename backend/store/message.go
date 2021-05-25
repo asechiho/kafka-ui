@@ -115,10 +115,21 @@ type Filters struct {
 	Size    int
 }
 
+func (filters Filters) findOffset() (Filter, bool) {
+	for _, filter := range filters.Filters {
+		if "offset" == filter.FieldName {
+			return filter, true
+		}
+	}
+
+	return Filter{}, false
+}
+
 type Filter struct {
-	FieldName  string
-	FieldValue interface{}
-	Comparator Comparator
+	FieldName     string
+	FieldValue    interface{}
+	Comparator    Comparator
+	MongoOperator string
 }
 
 func (filter Filter) Compare(left, right interface{}) bool {

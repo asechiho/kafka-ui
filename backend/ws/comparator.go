@@ -71,11 +71,11 @@ func (numberComparator NumberComparator) Compare(left, right interface{}) bool {
 		return leftNumber == rightNumber
 	case OperatorTypeNe:
 		return leftNumber != rightNumber
-	case OperatorTypeGe:
+	case OperatorTypeGte:
 		return leftNumber >= rightNumber
 	case OperatorTypeGt:
 		return leftNumber > rightNumber
-	case OperatorTypeLe:
+	case OperatorTypeLte:
 		return leftNumber <= rightNumber
 	case OperatorTypeLt:
 		return leftNumber < rightNumber

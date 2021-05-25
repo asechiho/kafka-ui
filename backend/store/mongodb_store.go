@@ -5,6 +5,8 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"sort"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -56,6 +58,7 @@ func (mongoDB *MongoDBService) InitializeContext() error {
 	}
 
 	connection = mongoDB.getConnection(id)
+
 	if err = connection.Database(mongoDB.configure.Config.DatabaseName).CreateCollection(mongoDB.configure.GlobalContext, CollectionName); err != nil {
 		log.Warnf("Create Collection: %s", err.Error())
 	}
@@ -219,18 +222,29 @@ func (mongoDB *MongoDBService) Stop() {
 
 func (mongoDB *MongoDBService) getLastMessages(id uuid.UUID, msgChan chan Message, filters Filters, count int) {
 	var (
-		topicFilter = bson.M{}
-		cursor      *mongo.Cursor
-		err         error
+		topicFilter  = map[string]interface{}{}
+		cursor       *mongo.Cursor
+		offsetFilter Filter
+		ok           bool
+		err          error
 	)
 
 	if filters.Topic != "" && filters.Topic != "all" {
-		topicFilter = bson.M{
-			CollectionIndex: filters.Topic,
+		topicFilter[CollectionIndex] = filters.Topic
+	}
+
+	if offsetFilter, ok = filters.findOffset(); ok {
+		var offset int
+		if offset, err = strconv.Atoi(offsetFilter.FieldValue.(string)); err != nil {
+			log.Errorf("Mongo filter parse offset err: %s", err.Error())
+		}
+
+		topicFilter["offset"] = bson.M{
+			offsetFilter.MongoOperator: offset,
 		}
 	}
 
-	cursor, err = mongoDB.getCollection(id).Find(mongoDB.configure.GlobalContext, topicFilter, options.Find().SetSort(bson.D{{"offset", 1}}).SetLimit(int64(count)))
+	cursor, err = mongoDB.getCollection(id).Find(mongoDB.configure.GlobalContext, topicFilter, options.Find().SetSort(bson.D{{"offset", -1}}).SetLimit(int64(count)))
 	if err != nil {
 		log.Warnf("Get desc error: %s", err.Error())
 		return
@@ -241,6 +255,10 @@ func (mongoDB *MongoDBService) getLastMessages(id uuid.UUID, msgChan chan Messag
 		log.Warnf("Get all messages error: %s", err.Error())
 		return
 	}
+
+	sort.Slice(msgs, func(i, j int) bool {
+		return msgs[i].Offset < msgs[j].Offset
+	})
 
 	for _, msg := range msgs {
 		if msg.Filter(filters) {

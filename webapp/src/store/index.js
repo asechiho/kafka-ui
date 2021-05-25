@@ -7,8 +7,8 @@ let operators = {
     "=": "eq",
     ">": "gt",
     "<": "lt",
-    "<=": "le",
-    ">=": "ge",
+    "<=": "lte",
+    ">=": "gte",
 };
 
 export default new Vuex.Store({
@@ -22,7 +22,6 @@ export default new Vuex.Store({
         filters: [],
         isRequesting: false,
         size: 20,
-        totalSize: 1
     },
     getters: {
         SIZE: (state) => state.size,
@@ -32,7 +31,6 @@ export default new Vuex.Store({
         IS_CONNECTED: (state) => state.socket.isConnected,
         FILTERS: (state) => state.filters,
         IS_REQUESTING: (state) => state.isRequesting,
-        TOTAL_PAGE: (state) => parseInt(state.totalSize / state.size)
     },
     mutations: {
         SOCKET_ONOPEN: (state, event) => {
@@ -68,18 +66,6 @@ export default new Vuex.Store({
             }
 
             state.messages.unshift(message);
-        },
-        SET_PAGE: (state, page) => {
-            state.filters.push({
-                operator: ">=",
-                parameter: "offset",
-                value: (state.totalSize - ((page + 1) * state.size)).toString()
-            })
-            state.filters.push({
-                operator: "<=",
-                parameter: "offset",
-                value: (state.totalSize - (page * state.size)).toString()
-            })
         },
         CLEAR_MESSAGES: (state) => {
             state.messages = [];
