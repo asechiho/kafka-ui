@@ -211,7 +211,7 @@ func (mongoDB *MongoDBService) Serve() {
 					continue
 				}
 
-				log.Infof("Insert document: %v. Result: %s", msg.(Message), insertResult.InsertedID)
+				log.Debugf("Insert document: %v. Result: %s", msg.(Message), insertResult.InsertedID)
 			}
 		}
 	}()

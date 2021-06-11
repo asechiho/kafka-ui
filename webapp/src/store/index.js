@@ -106,7 +106,7 @@ export default new Vuex.Store({
             Vue.prototype.$socket.sendObj({
                 request: "messages",
                 filters: filters,
-                size: ctx.getters.SIZE
+                size: ctx.getters.SIZE.toString()
             });
 
             setTimeout(() => ctx.commit("SWITCH_IS_REQUESTING"), 2000);

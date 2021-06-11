@@ -18,6 +18,13 @@ type Config struct {
 	DatabaseHost  string `config:"db-host"`
 	DatabasePort  string `config:"db-port"`
 	DatabaseName  string `config:"db-name"`
+	TLSConfig     TLS
+}
+
+type TLS struct {
+	CertificateAuthority string `config:"kafka-tls-ca"`
+	Certificate          string `config:"kafka-tls-cert"`
+	PrivateKey           string `config:"kafka-tls-key"`
 }
 
 func (config *Config) Defaults() *Config {
@@ -33,6 +40,10 @@ func (config *Config) Defaults() *Config {
 
 func (config *Config) DatabaseServer() string {
 	return fmt.Sprintf("%s:%s", config.DatabaseHost, config.DatabasePort)
+}
+
+func (config *Config) IsTLS() bool {
+	return config.TLSConfig.CertificateAuthority != "" && config.TLSConfig.Certificate != "" && config.TLSConfig.PrivateKey != ""
 }
 
 type Configure struct {

@@ -27,16 +27,29 @@ func (provider *Provider) Serve() {
 		err        error
 		message    *kafka.Message
 		topicsChan = make(chan interface{})
+		configMap  *kafka.ConfigMap
+		tlsConfig  *TLSConfig
 	)
 
 	go func() {
-		if provider.consumer, err = kafka.NewConsumer(&kafka.ConfigMap{
+		configMap = &kafka.ConfigMap{
 			"bootstrap.servers": provider.configure.Config.KafkaHost,
 			"group.id":          provider.configure.Config.KafkaGroup,
 			"auto.offset.reset": "latest",
 			"topic.blacklist":   "__consumer_offsets",
 			"isolation.level":   "read_committed",
-		}); err != nil {
+		}
+
+		if provider.configure.Config.IsTLS() {
+			tlsConfig = NewConfig(provider.configure.Config.TLSConfig)
+			_ = configMap.SetKey("security.protocol", "ssl")
+			_ = configMap.SetKey("ssl.certificate.location", tlsConfig.Certificate)
+			_ = configMap.SetKey("ssl.ca.location", tlsConfig.CertificateAuthority)
+			_ = configMap.SetKey("ssl.key.location", tlsConfig.PrivateKey)
+			log.Info("Apply ssl config success")
+		}
+
+		if provider.consumer, err = kafka.NewConsumer(configMap); err != nil {
 			log.Fatalf("Kafka connection error: %s", err.Error())
 		}
 		defer provider.close()

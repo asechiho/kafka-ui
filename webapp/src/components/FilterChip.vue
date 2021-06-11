@@ -56,6 +56,7 @@ export default {
   padding-right: 5px;
   padding-left: 5px;
   background-color: rgb(70, 70, 70);
+  vertical-align: -.09em;
 }
 
 .filter-chip-key-right:hover {
