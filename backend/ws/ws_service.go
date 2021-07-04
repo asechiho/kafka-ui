@@ -22,8 +22,8 @@ type Service interface {
 }
 
 type WsService struct {
-	configure   *config.Configure     `di.inject:"appConfigure"`
-	storeSvc    *store.MongoDBService `di.inject:"storeService"`
+	configure   *config.Configure `di.inject:"appConfigure"`
+	storeSvc    *store.Store      `di.inject:"storeService"`
 	connections map[uuid.UUID]net.Conn
 }
 
@@ -31,7 +31,7 @@ func (wsService *WsService) Serve() {
 	wsService.connections = make(map[uuid.UUID]net.Conn)
 
 	http.HandleFunc("/", wsService.Socket)
-	go log.Fatal(http.ListenAndServe(":9002", nil))
+	go log.Fatal(http.ListenAndServe(":9003", nil))
 }
 
 func (wsService *WsService) Stop() {

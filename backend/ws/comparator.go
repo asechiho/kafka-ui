@@ -1,7 +1,6 @@
 package ws
 
 import (
-	"strconv"
 	"strings"
 
 	log "github.com/sirupsen/logrus"
@@ -45,15 +44,11 @@ type NumberComparator struct {
 
 func (numberComparator NumberComparator) Compare(left, right interface{}) bool {
 	var (
-		err         error
 		leftNumber  int64
 		rightNumber int64
 	)
 
-	if rightNumber, err = strconv.ParseInt(right.(string), 10, 64); err != nil {
-		log.Debugf("Filter value %v parse error: %s", right, err.Error())
-		return false
-	}
+	rightNumber = right.(int64)
 
 	switch left.(type) {
 	case int:

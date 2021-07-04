@@ -1,7 +1,6 @@
 package store
 
 import (
-	"bytes"
 	"encoding/json"
 	"reflect"
 	"strconv"
@@ -15,14 +14,14 @@ import (
 const messageFilterFields = "offset;partition;timestamp;at;size;"
 
 type Message struct {
-	Topic     string    `rethinkdb:"topic"     bson:"topic"`
-	Headers   []byte    `rethinkdb:"headers"   bson:"headers"`
-	Offset    int       `rethinkdb:"offset"    bson:"offset"`
-	Partition int       `rethinkdb:"partition" bson:"partition"`
-	Timestamp int64     `rethinkdb:"timestamp" bson:"timestamp"`
-	At        time.Time `rethinkdb:"at"        bson:"at"`
-	Size      int       `rethinkdb:"size"      bson:"size"`
-	Message   []byte    `rethinkdb:"message"   bson:"message"`
+	Topic     string                 `rethinkdb:"topic"     bson:"topic"`
+	Headers   map[string]string      `rethinkdb:"headers"   bson:"headers"`
+	Offset    int                    `rethinkdb:"offset"    bson:"offset"`
+	Partition int                    `rethinkdb:"partition" bson:"partition"`
+	Timestamp int64                  `rethinkdb:"timestamp" bson:"timestamp"`
+	At        time.Time              `rethinkdb:"at"        bson:"at"`
+	Size      int                    `rethinkdb:"size"      bson:"size"`
+	Message   map[string]interface{} `rethinkdb:"message"   bson:"message"`
 }
 
 func (message Message) Filter(filters Filters) bool {
@@ -50,10 +49,7 @@ func (message Message) Filter(filters Filters) bool {
 			continue
 		}
 
-		var headers = map[string]string{}
-		_ = json.Unmarshal(message.Headers, &headers)
-
-		if val, ok := headers[filter.FieldName]; ok {
+		if val, ok := message.Headers[filter.FieldName]; ok {
 			log.Tracef("Filter: compare header %s, message value: %s, filter value: %s", filter.FieldName, val, filter.FieldValue.(string))
 			if !filter.Compare(val, filter.FieldValue) {
 				return false
@@ -73,9 +69,8 @@ type Changes struct {
 
 func New(msg kafka.Message) Message {
 	var (
-		dbHeaders []byte
-		offset    int64
-		err       error
+		offset int64
+		err    error
 	)
 
 	keyValue := map[string]string{}
@@ -83,25 +78,25 @@ func New(msg kafka.Message) Message {
 		keyValue[header.Key] = string(header.Value)
 	}
 
-	if dbHeaders, err = json.Marshal(keyValue); err != nil {
-		log.Warnf("Marshal header error: %s", err.Error())
-		dbHeaders = []byte(`{}`)
-	}
-
 	if offset, err = strconv.ParseInt(msg.TopicPartition.Offset.String(), 10, 64); err != nil {
 		log.Warnf("Offset parse error: %s", err.Error())
 		offset = 0
 	}
 
+	body := map[string]interface{}{}
+	if err = json.Unmarshal(msg.Value, &body); err != nil {
+		log.Warnf("Body parse error: %s", err.Error())
+	}
+
 	return Message{
 		Topic:     *msg.TopicPartition.Topic,
-		Headers:   dbHeaders,
+		Headers:   keyValue,
 		Offset:    int(offset),
 		Partition: int(msg.TopicPartition.Partition),
 		Timestamp: msg.Timestamp.Unix(),
 		At:        msg.Timestamp,
 		Size:      len(msg.Value),
-		Message:   bytes.NewBufferString(string(msg.Value)).Bytes(),
+		Message:   body,
 	}
 }
 
@@ -123,6 +118,18 @@ func (filters Filters) findOffset() (Filter, bool) {
 	}
 
 	return Filter{}, false
+}
+
+func (filters Filters) findByName(name string) []Filter {
+	var findSlice []Filter
+
+	for _, filter := range filters.Filters {
+		if strings.EqualFold(filter.FieldName, name) {
+			findSlice = append(findSlice, filter)
+		}
+	}
+
+	return findSlice
 }
 
 type Filter struct {

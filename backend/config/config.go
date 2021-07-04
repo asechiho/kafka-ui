@@ -15,6 +15,7 @@ type Config struct {
 	KafkaHost     string `config:"kafka-host"`
 	KafkaPort     string `config:"kafka-port"`
 	KafkaGroup    string `config:"kafka-group-id"`
+	Databasetype  string `config:"db-type"`
 	DatabaseHost  string `config:"db-host"`
 	DatabasePort  string `config:"db-port"`
 	DatabaseName  string `config:"db-name"`
@@ -40,6 +41,11 @@ func (config *Config) Defaults() *Config {
 
 func (config *Config) DatabaseServer() string {
 	return fmt.Sprintf("%s:%s", config.DatabaseHost, config.DatabasePort)
+}
+
+func (config *Config) DatabaseType() DatabaseType {
+	tp, _ := ParseDatabaseType(config.Databasetype)
+	return tp
 }
 
 func (config *Config) IsTLS() bool {

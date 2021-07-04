@@ -6,7 +6,6 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"sort"
-	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -21,17 +20,16 @@ const (
 	CollectionIndex = "topic"
 )
 
-type MService interface {
-	Serve()
-	Stop()
-}
-
 type MongoDBService struct {
 	configure      *config.Configure `di.inject:"appConfigure"`
 	connectionPool map[uuid.UUID]*mongo.Client
 	topics         []string
 	newTopicChan   chan string
 	mutex          sync.RWMutex
+}
+
+func (mongoDB *MongoDBService) config(configure *config.Configure) {
+	mongoDB.configure = configure
 }
 
 func (mongoDB *MongoDBService) InitializeContext() error {
@@ -222,27 +220,12 @@ func (mongoDB *MongoDBService) Stop() {
 
 func (mongoDB *MongoDBService) getLastMessages(id uuid.UUID, msgChan chan Message, filters Filters, count int) {
 	var (
-		topicFilter  = map[string]interface{}{}
-		cursor       *mongo.Cursor
-		offsetFilter Filter
-		ok           bool
-		err          error
+		topicFilter = map[string]interface{}{}
+		cursor      *mongo.Cursor
+		err         error
 	)
 
-	if filters.Topic != "" && filters.Topic != "all" {
-		topicFilter[CollectionIndex] = filters.Topic
-	}
-
-	if offsetFilter, ok = filters.findOffset(); ok {
-		var offset int
-		if offset, err = strconv.Atoi(offsetFilter.FieldValue.(string)); err != nil {
-			log.Errorf("Mongo filter parse offset err: %s", err.Error())
-		}
-
-		topicFilter["offset"] = bson.M{
-			offsetFilter.MongoOperator: offset,
-		}
-	}
+	topicFilter = mongoDB.compileMongoFilter(filters)
 
 	cursor, err = mongoDB.getCollection(id).Find(mongoDB.configure.GlobalContext, topicFilter, options.Find().SetSort(bson.D{{"offset", -1}}).SetLimit(int64(count)))
 	if err != nil {
@@ -359,4 +342,40 @@ func (mongoDB *MongoDBService) createConnection(client *mongo.Client) uuid.UUID 
 	mongoDB.connectionPool[id] = client
 	mongoDB.mutex.Unlock()
 	return id
+}
+
+func (mongoDB *MongoDBService) compileMongoFilter(filters Filters) map[string]interface{} {
+	var (
+		mongoFilter        = map[string]interface{}{}
+		supportFilterNames []string
+		findFilters        []Filter
+	)
+
+	if filters.Topic != "" && filters.Topic != "all" {
+		mongoFilter[CollectionIndex] = filters.Topic
+	}
+
+	supportFilterNames = strings.Split(messageFilterFields, ";")
+	for _, name := range supportFilterNames {
+		findFilters = filters.findByName(name)
+
+		var bsonFilter = bson.M{}
+		for _, filter := range findFilters {
+			bsonFilter[filter.MongoOperator] = filter.FieldValue
+		}
+
+		if len(bsonFilter) > 0 {
+			mongoFilter[name] = bsonFilter
+		}
+	}
+
+	for _, filter := range filters.Filters {
+		if !strings.Contains(messageFilterFields, filter.FieldName) {
+			mongoFilter["headers."+filter.FieldName] = bson.M{
+				filter.MongoOperator: filter.FieldValue,
+			}
+		}
+	}
+
+	return mongoFilter
 }

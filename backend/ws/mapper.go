@@ -1,7 +1,6 @@
 package ws
 
 import (
-	"encoding/json"
 	"fmt"
 	log "github.com/sirupsen/logrus"
 	"strconv"
@@ -17,22 +16,16 @@ var messageFilterFields = map[CastType]string{
 }
 
 func ConvertToWsMessage(message store.Message) Messages {
-	var headers = map[string]string{}
-	_ = json.Unmarshal(message.Headers, &headers)
-
-	var body = map[string]interface{}{}
-	_ = json.Unmarshal(message.Message, &body)
-
 	return Messages{
 		Message: Message{
 			Topic:       message.Topic,
-			Headers:     headers,
+			Headers:     message.Headers,
 			Offset:      strconv.FormatInt(int64(message.Offset), 10),
 			Partition:   string(rune(message.Partition)),
 			Timestamp:   strconv.FormatInt(message.Timestamp, 10),
 			At:          message.At.Format(time.RFC3339),
 			PayloadSize: strconv.Itoa(message.Size),
-			Payload:     body,
+			Payload:     message.Message,
 		},
 	}
 }
@@ -64,10 +57,11 @@ func ConvertToStoreFilter(request MessageRequest) (result store.Filters) {
 			continue
 		}
 
+		var castTypeValue = getCastType(filter.Param)
 		result.Filters = append(result.Filters, store.Filter{
 			FieldName:     filter.Param,
-			FieldValue:    filter.Value,
-			Comparator:    New(filter.Operator, getCastType(filter.Param)),
+			FieldValue:    castType(filter.Value, castTypeValue),
+			Comparator:    New(filter.Operator, castTypeValue),
 			MongoOperator: fmt.Sprintf("$%s", filter.Operator.String()),
 		})
 	}
@@ -81,4 +75,29 @@ func getCastType(fieldName string) CastType {
 		}
 	}
 	return CastTypeStr
+}
+
+func castType(val interface{}, castType2 CastType) interface{} {
+	switch castType2 {
+	case CastTypeInt:
+		return castToInt(val)
+	case CastTypeStr:
+		return val
+	default:
+		return val
+
+	}
+}
+
+func castToInt(right interface{}) int64 {
+	var (
+		number int64
+		err    error
+	)
+
+	if number, err = strconv.ParseInt(right.(string), 10, 64); err != nil {
+		log.Debugf("Filter value %v parse error: %s", right, err.Error())
+	}
+
+	return number
 }
